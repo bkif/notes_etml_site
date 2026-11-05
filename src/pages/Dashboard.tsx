@@ -1,0 +1,237 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { ErrorState } from '../components/ui/ErrorState';
+import { Modal } from '../components/ui/Modal';
+import { ModuleCardSkeleton, StatCardSkeleton } from '../components/ui/Skeleton';
+import { ModuleCard } from '../components/ModuleCard';
+import { ModuleForm } from '../components/ModuleForm';
+import { StatCard } from '../components/StatCard';
+import { useModuleData } from '../lib/queries';
+import {
+  averageTone,
+  EMPTY_STAT,
+  formatAverage,
+  isModuleValidated,
+  PASS_THRESHOLD,
+  toneClasses,
+} from '../lib/grades';
+import { cn, isTypingTarget, pluralize } from '../lib/utils';
+
+type Filter = 'all' | 'below' | 'validated' | 'status';
+
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'Tous' },
+  { value: 'validated', label: 'Validés' },
+  { value: 'below', label: 'Sous 4.0' },
+  { value: 'status', label: 'Validation' },
+];
+
+function normalize(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+export function Dashboard() {
+  const { modules, stats, global, isLoading, error, refetch } = useModuleData();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [createOpen, setCreateOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Raccourci « / » pour la recherche
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '/' && !isTypingTarget(e.target) && !document.querySelector('[role="dialog"]')) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = normalize(query.trim());
+    return modules.filter((m) => {
+      if (q && !normalize(m.code).includes(q) && !normalize(m.name).includes(q)) return false;
+      const stat = stats.get(m.id) ?? EMPTY_STAT;
+      switch (filter) {
+        case 'validated':
+          return isModuleValidated(m, stat);
+        case 'below':
+          return m.type === 'numeric' && stat.average !== null && stat.average < PASS_THRESHOLD;
+        case 'status':
+          return m.type === 'status';
+        default:
+          return true;
+      }
+    });
+  }, [modules, stats, query, filter]);
+
+  const globalTone = averageTone(global.globalAverage);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Tableau de bord</h1>
+          <p className="mt-1 text-sm text-zinc-500">Vue d’ensemble de vos modules et résultats.</p>
+        </div>
+        <Button variant="primary" onClick={() => setCreateOpen(true)} className="hidden sm:inline-flex">
+          <Plus className="h-4 w-4" />
+          Nouveau module
+        </Button>
+      </div>
+
+      {error ? (
+        <ErrorState error={error} onRetry={refetch} />
+      ) : (
+        <>
+          {/* Métriques clés */}
+          <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {isLoading ? (
+              Array.from({ length: 4 }, (_, i) => <StatCardSkeleton key={i} />)
+            ) : (
+              <>
+                <StatCard
+                  label="Moyenne générale"
+                  icon={Sigma}
+                  value={formatAverage(global.globalAverage)}
+                  valueClassName={global.globalAverage !== null ? toneClasses[globalTone].text : 'text-zinc-500'}
+                  hint={
+                    global.gradedModuleCount > 0
+                      ? `Pondérée · ${pluralize(global.gradedModuleCount, 'module noté', 'modules notés')}`
+                      : 'Aucune note pour l’instant'
+                  }
+                />
+                <StatCard
+                  label="Modules validés"
+                  icon={CheckCircle2}
+                  iconClassName="text-emerald-500/70"
+                  value={
+                    <>
+                      {global.validatedCount}
+                      <span className="text-base text-zinc-600"> / {global.moduleCount}</span>
+                    </>
+                  }
+                  hint="Moyenne ≥ 4.0 ou « Acquis »"
+                />
+                <StatCard
+                  label="Modules sous 4.0"
+                  icon={AlertTriangle}
+                  iconClassName={global.belowCount > 0 ? 'text-red-500/80' : undefined}
+                  value={global.belowCount}
+                  valueClassName={global.belowCount > 0 ? 'text-red-400' : undefined}
+                  hint={global.belowCount > 0 ? 'À surveiller de près' : 'Tout est en ordre'}
+                />
+                <StatCard
+                  label="Évaluations"
+                  icon={BookOpen}
+                  value={global.gradeCount}
+                  hint={pluralize(global.moduleCount, 'module')}
+                />
+              </>
+            )}
+          </section>
+
+          {/* Recherche + filtres */}
+          <section className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+              <input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Rechercher un module (code ou nom)…"
+                className="input pl-9 pr-16 [&::-webkit-search-cancel-button]:hidden"
+                aria-label="Rechercher un module"
+              />
+              {query ? (
+                <button
+                  onClick={() => setQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-500 hover:text-zinc-200"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-800 bg-zinc-900 px-1.5 font-mono text-[10px] text-zinc-500 sm:block">
+                  /
+                </kbd>
+              )}
+            </div>
+            <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className={cn('chip h-9 shrink-0 px-3 font-sans', filter === f.value && 'chip-active')}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Grille des modules */}
+          {isLoading ? (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }, (_, i) => (
+                <ModuleCardSkeleton key={i} />
+              ))}
+            </section>
+          ) : modules.length === 0 ? (
+            <div className="card flex flex-col items-center border-dashed px-6 py-14 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 ring-1 ring-zinc-800">
+                <FolderPlus className="h-5 w-5 text-zinc-400" />
+              </div>
+              <h2 className="mt-4 text-sm font-semibold">Aucun module pour l’instant</h2>
+              <p className="mt-1 max-w-sm text-sm text-zinc-500">
+                Créez votre premier module (ex. « I320 — Programmation orientée objet ») pour commencer à suivre vos
+                notes.
+              </p>
+              <Button variant="accent" className="mt-5" onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Créer un module
+              </Button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="card flex flex-col items-center px-6 py-12 text-center">
+              <SearchX className="h-6 w-6 text-zinc-600" />
+              <p className="mt-3 text-sm text-zinc-400">Aucun module ne correspond à votre recherche.</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3"
+                onClick={() => {
+                  setQuery('');
+                  setFilter('all');
+                }}
+              >
+                Réinitialiser les filtres
+              </Button>
+            </div>
+          ) : (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((m) => (
+                <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
+              ))}
+            </section>
+          )}
+
+          {!isLoading && modules.length > 0 && (
+            <Button variant="secondary" className="w-full sm:hidden" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Nouveau module
+            </Button>
+          )}
+        </>
+      )}
+
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Nouveau module">
+        <ModuleForm existingModules={modules} onDone={() => setCreateOpen(false)} />
+      </Modal>
+    </div>
+  );
+}

@@ -1,9 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff, KeyRound, Mail, MailCheck, Wand2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Field } from '../components/ui/Field';
 import { Logo } from '../components/ui/Logo';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { cn, getAuthErrorMessage } from '../lib/utils';
 
 type Tab = 'signin' | 'signup';
@@ -13,7 +15,15 @@ type Errors = Partial<Record<'email' | 'password' | 'confirm' | 'form', string>>
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function AuthPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('signin');
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
   const [method, setMethod] = useState<Method>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

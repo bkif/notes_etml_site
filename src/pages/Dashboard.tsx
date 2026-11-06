@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X, Layers } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X, Layers, Hash, CheckSquare } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Modal } from '../components/ui/Modal';
@@ -67,6 +67,9 @@ export function Dashboard() {
       }
     });
   }, [modules, stats, query, filter]);
+
+  const numericModules = useMemo(() => filtered.filter((m) => m.type === 'numeric'), [filtered]);
+  const statusModules = useMemo(() => filtered.filter((m) => m.type === 'status'), [filtered]);
 
   const globalTone = averageTone(global.globalAverage);
 
@@ -289,11 +292,55 @@ export function Dashboard() {
               </Button>
             </div>
           ) : (
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((m) => (
-                <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
-              ))}
-            </section>
+            <div className="space-y-8">
+              {/* Section 1 : Modules avec notes chiffrées */}
+              {numericModules.length > 0 && (
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-800 text-zinc-400">
+                        <Hash className="h-3.5 w-3.5" />
+                      </div>
+                      <h2 className="text-sm font-semibold text-zinc-200">
+                        Modules avec notes chiffrées
+                      </h2>
+                      <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 font-mono">
+                        {numericModules.length}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {numericModules.map((m) => (
+                      <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Section 2 : Modules de validation (Acquis / Non acquis) */}
+              {statusModules.length > 0 && (
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-400">
+                        <CheckSquare className="h-3.5 w-3.5" />
+                      </div>
+                      <h2 className="text-sm font-semibold text-zinc-200">
+                        Modules de validation (Acquis / Non acquis)
+                      </h2>
+                      <span className="rounded-full bg-indigo-500/10 text-indigo-400 px-2 py-0.5 text-xs font-mono">
+                        {statusModules.length}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {statusModules.map((m) => (
+                      <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
 
           {!isLoading && modules.length > 0 && (

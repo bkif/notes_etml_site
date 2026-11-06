@@ -118,7 +118,7 @@ export function ModuleDetail() {
             <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-500">
               coef. ×{formatWeight(module.coefficient)}
             </span>
-            {module.periods && (
+            {module.type === 'status' && module.periods && (
               <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
                 {module.periods} périodes
               </span>

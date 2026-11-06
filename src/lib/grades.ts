@@ -90,24 +90,14 @@ export function computeGlobalStats(
   for (const m of modules) {
     const stat = stats.get(m.id) ?? EMPTY_STAT;
     const isValid = isModuleValidated(m, stat);
-    const p = m.periods && m.periods > 0 ? m.periods : 40; // Valeur par défaut de 40 périodes
-    totalPeriods += p;
 
     if (m.type === 'status') {
+      const p = m.periods && m.periods > 0 ? m.periods : 40;
+      totalPeriods += p;
       if (m.status_validation === 'Acquis') {
         acquiredPeriods += p;
       } else if (m.status_validation === 'Non acquis') {
         failedPeriods += p;
-      } else {
-        inProgressPeriods += p;
-      }
-    } else {
-      if (stat.average !== null) {
-        if (stat.average >= PASS_THRESHOLD) {
-          acquiredPeriods += p;
-        } else {
-          failedPeriods += p;
-        }
       } else {
         inProgressPeriods += p;
       }

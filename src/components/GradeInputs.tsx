@@ -87,7 +87,7 @@ interface WeightInputProps {
 export function WeightInput({ id, value, onChange, invalid }: WeightInputProps) {
   const parsed = parseDecimal(value);
   return (
-    <div className="flex items-center gap-2">
+    <div className="space-y-2">
       <input
         id={id}
         type="text"
@@ -95,16 +95,16 @@ export function WeightInput({ id, value, onChange, invalid }: WeightInputProps) 
         autoComplete="off"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={cn('input w-20 text-center font-mono', invalid && 'input-error')}
+        className={cn('input h-9 w-full text-center font-mono', invalid && 'input-error')}
         aria-invalid={invalid}
       />
-      <div className="flex flex-1 gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5">
         {QUICK_WEIGHTS.map((w) => (
           <button
             key={w}
             type="button"
             onClick={() => onChange(String(w))}
-            className={cn('chip flex-1', parsed === w && 'chip-active')}
+            className={cn('chip h-8 w-full text-xs', parsed === w && 'chip-active')}
           >
             ×{w}
           </button>

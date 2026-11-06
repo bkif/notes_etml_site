@@ -95,7 +95,9 @@ export function GradeSimulator({ grades }: { grades: Grade[] }) {
         <label htmlFor="sim-weight" className="label">
           Coefficient du prochain test
         </label>
-        <WeightInput id="sim-weight" value={weightInput} onChange={setWeightInput} invalid={!validWeight} />
+        <div className="mt-1">
+          <WeightInput id="sim-weight" value={weightInput} onChange={setWeightInput} invalid={!validWeight} />
+        </div>
         {!validWeight && <p className="mt-1.5 text-xs text-red-400">Coefficient invalide (0 &lt; x ≤ 100).</p>}
       </div>
 
@@ -108,7 +110,7 @@ export function GradeSimulator({ grades }: { grades: Grade[] }) {
           </div>
 
           <div className="mt-4 space-y-3 border-t border-zinc-800/80 pt-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="sim-target" className="text-xs text-zinc-400">
                 Objectif personnalisé
               </label>
@@ -136,27 +138,24 @@ export function GradeSimulator({ grades }: { grades: Grade[] }) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="sim-hypo" className="flex items-center gap-1.5 text-xs text-zinc-400">
                 <TrendingUp className="h-3.5 w-3.5" />
-                Et si j’obtiens…
+                Moyenne si j’obtiens
               </label>
               <div className="flex items-center gap-2">
                 <input
                   id="sim-hypo"
+                  placeholder="ex. 5"
                   value={hypothesis}
                   onChange={(e) => setHypothesis(e.target.value)}
                   inputMode="decimal"
-                  placeholder="5.0"
-                  className={cn(
-                    'input h-8 w-16 px-2 text-center font-mono',
-                    hypothesis !== '' && !validHypo && 'input-error',
-                  )}
+                  className={cn('input h-8 w-16 px-2 text-center font-mono', hypothesis && !validHypo && 'input-error')}
                 />
                 <span className="w-24 text-right font-mono text-sm">
                   {projected !== null ? (
-                    <span className={toneClasses[averageTone(projected)].text}>
-                      moy. {formatAverage(projected)}
+                    <span className={cn('font-semibold', toneClasses[averageTone(projected)].text)}>
+                      → {formatAverage(projected)}
                     </span>
                   ) : (
                     <span className="text-zinc-600">—</span>

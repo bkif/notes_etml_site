@@ -10,6 +10,7 @@ export interface Module {
   name: string;
   coefficient: number;
   type: ModuleType;
+  periods?: number | null;
   status_validation: StatusValidation | null;
   created_at: string;
 }
@@ -28,7 +29,7 @@ export interface Grade {
 
 export type ModuleInput = Pick<
   Module,
-  'code' | 'name' | 'coefficient' | 'type' | 'status_validation'
+  'code' | 'name' | 'coefficient' | 'type' | 'periods' | 'status_validation'
 >;
 
 export type GradeInput = Pick<

@@ -24,12 +24,22 @@ export function ModuleCard({ module, stat }: { module: Module; stat: ModuleStat 
           <p className="font-mono text-sm font-semibold tracking-tight text-zinc-100">{module.code}</p>
           <p className="mt-0.5 line-clamp-2 text-sm text-zinc-400">{module.name}</p>
         </div>
-        <span
-          className="shrink-0 rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[11px] text-zinc-500"
-          title="Coefficient du module"
-        >
-          ×{formatWeight(module.coefficient)}
-        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          {module.periods && (
+            <span
+              className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[11px] text-zinc-400"
+              title="Nombre de périodes"
+            >
+              {module.periods}p
+            </span>
+          )}
+          <span
+            className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[11px] text-zinc-500"
+            title="Coefficient du module"
+          >
+            ×{formatWeight(module.coefficient)}
+          </span>
+        </div>
       </div>
 
       <div className="mt-5 flex items-end justify-between gap-2">

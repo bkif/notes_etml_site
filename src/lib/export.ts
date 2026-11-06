@@ -11,6 +11,7 @@ export interface BackupModule {
   name: string;
   coefficient: number;
   type: ModuleType;
+  periods?: number | null;
   status_validation: StatusValidation | null;
   created_at?: string;
 }
@@ -39,12 +40,13 @@ export function buildJsonExport(modules: Module[], grades: Grade[]): string {
     app: 'notes',
     version: 1,
     exported_at: new Date().toISOString(),
-    modules: modules.map(({ id, code, name, coefficient, type, status_validation, created_at }) => ({
+    modules: modules.map(({ id, code, name, coefficient, type, periods, status_validation, created_at }) => ({
       id,
       code,
       name,
       coefficient,
       type,
+      periods,
       status_validation,
       created_at,
     })),

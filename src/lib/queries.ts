@@ -23,6 +23,7 @@ function toModule(row: Module): Module {
   return {
     ...row,
     coefficient: Number(row.coefficient),
+    periods: row.periods ? Number(row.periods) : null,
     status_validation: row.type === 'status' ? row.status_validation : null,
   };
 }

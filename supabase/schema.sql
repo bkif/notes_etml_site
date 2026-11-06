@@ -19,6 +19,8 @@ create table if not exists public.modules (
                       check (coefficient > 0),
   type              text not null default 'numeric'
                       check (type in ('numeric', 'status')),
+  periods           integer default 40
+                      check (periods is null or periods > 0),
   status_validation text
                       check (status_validation in ('Acquis', 'Non acquis', 'En cours')),
   created_at        timestamptz not null default now(),

@@ -64,6 +64,11 @@ export interface GlobalStats {
   belowCount: number;
   moduleCount: number;
   gradeCount: number;
+  /** Statistiques sur les périodes */
+  totalPeriods: number;
+  acquiredPeriods: number;
+  inProgressPeriods: number;
+  failedPeriods: number;
 }
 
 export function computeGlobalStats(
@@ -77,9 +82,38 @@ export function computeGlobalStats(
   let validated = 0;
   let below = 0;
 
+  let totalPeriods = 0;
+  let acquiredPeriods = 0;
+  let inProgressPeriods = 0;
+  let failedPeriods = 0;
+
   for (const m of modules) {
     const stat = stats.get(m.id) ?? EMPTY_STAT;
-    if (isModuleValidated(m, stat)) validated++;
+    const isValid = isModuleValidated(m, stat);
+    const p = m.periods && m.periods > 0 ? m.periods : 40; // Valeur par défaut de 40 périodes
+    totalPeriods += p;
+
+    if (m.type === 'status') {
+      if (m.status_validation === 'Acquis') {
+        acquiredPeriods += p;
+      } else if (m.status_validation === 'Non acquis') {
+        failedPeriods += p;
+      } else {
+        inProgressPeriods += p;
+      }
+    } else {
+      if (stat.average !== null) {
+        if (stat.average >= PASS_THRESHOLD) {
+          acquiredPeriods += p;
+        } else {
+          failedPeriods += p;
+        }
+      } else {
+        inProgressPeriods += p;
+      }
+    }
+
+    if (isValid) validated++;
     if (m.type === 'numeric' && stat.average !== null) {
       graded++;
       sum += stat.average * m.coefficient;
@@ -95,6 +129,10 @@ export function computeGlobalStats(
     belowCount: below,
     moduleCount: modules.length,
     gradeCount,
+    totalPeriods,
+    acquiredPeriods,
+    inProgressPeriods,
+    failedPeriods,
   };
 }
 

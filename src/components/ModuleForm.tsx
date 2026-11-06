@@ -12,7 +12,7 @@ interface ModuleFormProps {
   onDone: (created?: ModuleInput) => void;
 }
 
-type Errors = Partial<Record<'code' | 'name' | 'coefficient', string>>;
+type Errors = Partial<Record<'code' | 'name' | 'coefficient' | 'periods', string>>;
 
 const TYPES: { value: ModuleType; label: string; description: string; Icon: typeof Hash }[] = [
   { value: 'numeric', label: 'Notes chiffrées', description: 'Moyenne sur 6', Icon: Hash },
@@ -26,6 +26,7 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
   const [code, setCode] = useState(module?.code ?? '');
   const [name, setName] = useState(module?.name ?? '');
   const [coefficient, setCoefficient] = useState(module ? String(module.coefficient) : '1');
+  const [periods, setPeriods] = useState(module?.periods ? String(module.periods) : '40');
   const [type, setType] = useState<ModuleType>(module?.type ?? 'numeric');
   const [status, setStatus] = useState<StatusValidation>(module?.status_validation ?? 'En cours');
   const [errors, setErrors] = useState<Errors>({});
@@ -36,6 +37,8 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
     const cleanCode = code.trim();
     const cleanName = name.trim();
     const coef = parseDecimal(coefficient);
+    const parsedPeriods =
+      type === 'status' ? (periods.trim() ? parseInt(periods.trim(), 10) : 40) : null;
 
     if (!cleanCode) next.code = 'Le code est requis (ex. I320).';
     else if (cleanCode.length > 32) next.code = '32 caractères maximum.';
@@ -52,6 +55,10 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
     if (coef === null || coef <= 0) next.coefficient = 'Le coefficient doit être supérieur à 0.';
     else if (coef > 100) next.coefficient = 'Le coefficient ne peut pas dépasser 100.';
 
+    if (type === 'status' && parsedPeriods !== null && (isNaN(parsedPeriods) || parsedPeriods <= 0 || parsedPeriods > 1000)) {
+      next.periods = 'Le nombre de périodes doit être positif (ex. 40, 80).';
+    }
+
     setErrors(next);
     if (Object.keys(next).length > 0 || coef === null) return;
 
@@ -59,6 +66,7 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
       code: cleanCode,
       name: cleanName,
       coefficient: Math.round(coef * 100) / 100,
+      periods: parsedPeriods,
       type,
       status_validation: type === 'status' ? status : null,
     };
@@ -140,20 +148,33 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
       </div>
 
       {type === 'status' && (
-        <Field label="Statut de validation">
-          <div className="grid grid-cols-3 gap-1.5">
-            {STATUS_OPTIONS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatus(s)}
-                className={cn('chip h-9 font-sans', status === s && 'chip-active')}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Nombre de périodes" htmlFor="module-periods" error={errors.periods}>
+            <input
+              id="module-periods"
+              value={periods}
+              onChange={(e) => setPeriods(e.target.value)}
+              inputMode="numeric"
+              placeholder="40"
+              autoComplete="off"
+              className={cn('input text-center font-mono', errors.periods && 'input-error')}
+            />
+          </Field>
+          <Field label="Statut de validation">
+            <div className="grid grid-cols-3 gap-1.5">
+              {STATUS_OPTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatus(s)}
+                  className={cn('chip h-9 font-sans text-xs', status === s && 'chip-active')}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </Field>
+        </div>
       )}
 
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">

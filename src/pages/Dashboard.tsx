@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X, Layers } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Modal } from '../components/ui/Modal';
@@ -133,6 +133,82 @@ export function Dashboard() {
               </>
             )}
           </section>
+
+          {/* Progression des périodes d'apprentissage */}
+          {!isLoading && global.totalPeriods > 0 && (
+            <section className="card p-4 sm:p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+                    <Layers className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold text-zinc-100">Progression des périodes d'enseignement</h2>
+                    <p className="text-xs text-zinc-400">
+                      Volume horaire acquis et validé pour votre cursus ETML
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-1 font-mono">
+                  <span className="text-xl font-bold text-zinc-100">{global.acquiredPeriods}</span>
+                  <span className="text-xs text-zinc-500">/ {global.totalPeriods} périodes</span>
+                  <span className="ml-2 rounded-md bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-indigo-400">
+                    {Math.round((global.acquiredPeriods / global.totalPeriods) * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Barre de répartition segmentée */}
+              <div className="mt-4">
+                <div className="relative flex h-3 w-full overflow-hidden rounded-full bg-zinc-800/80">
+                  {global.acquiredPeriods > 0 && (
+                    <div
+                      className="h-full bg-emerald-500 transition-all duration-500"
+                      style={{ width: `${(global.acquiredPeriods / global.totalPeriods) * 100}%` }}
+                      title={`Acquis : ${global.acquiredPeriods} périodes`}
+                    />
+                  )}
+                  {global.inProgressPeriods > 0 && (
+                    <div
+                      className="h-full bg-amber-500 transition-all duration-500"
+                      style={{ width: `${(global.inProgressPeriods / global.totalPeriods) * 100}%` }}
+                      title={`En cours : ${global.inProgressPeriods} périodes`}
+                    />
+                  )}
+                  {global.failedPeriods > 0 && (
+                    <div
+                      className="h-full bg-red-500 transition-all duration-500"
+                      style={{ width: `${(global.failedPeriods / global.totalPeriods) * 100}%` }}
+                      title={`Non acquis : ${global.failedPeriods} périodes`}
+                    />
+                  )}
+                </div>
+
+                {/* Légende détaillée */}
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-4 text-xs text-zinc-400">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span>Acquis ({global.acquiredPeriods}p · {Math.round((global.acquiredPeriods / global.totalPeriods) * 100)}%)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <span>En cours ({global.inProgressPeriods}p · {Math.round((global.inProgressPeriods / global.totalPeriods) * 100)}%)</span>
+                    </div>
+                    {global.failedPeriods > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                        <span className="text-red-400">Non acquis ({global.failedPeriods}p · {Math.round((global.failedPeriods / global.totalPeriods) * 100)}%)</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="font-mono text-zinc-500">
+                    Total : {global.totalPeriods} périodes
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Recherche + filtres */}
           <section className="flex flex-col gap-3 sm:flex-row sm:items-center">

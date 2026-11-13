@@ -55,3 +55,40 @@ npm run dev
 ```bash
 npm run build
 ```
+
+---
+
+## Mise en ligne (déploiement)
+
+Le site est une application statique (Vite). Le dossier à publier est `dist/`.
+
+### Option A — Vercel (recommandé)
+
+1. Allez sur [vercel.com](https://vercel.com) > **Add New > Project** et importez le dépôt GitHub `notes_etml_site`.
+2. Framework : **Vite** (détecté automatiquement). Build : `npm run build`, sortie : `dist`.
+3. Dans **Settings > Environment Variables**, ajoutez :
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY` (ou `VITE_SUPABASE_PUBLISHABLE_KEY`)
+4. Cliquez sur **Deploy**. Chaque `git push` redéploie automatiquement.
+
+### Option B — Netlify
+
+Même principe : **Add new site > Import from Git**, les réglages sont lus dans `netlify.toml`.
+Ajoutez les mêmes variables dans **Site settings > Environment variables**.
+
+### Configuration Supabase obligatoire après la mise en ligne
+
+Dans Supabase > **Authentication > URL Configuration** :
+- **Site URL** : l'adresse de votre site (ex. `https://notes-etml.vercel.app`)
+- **Redirect URLs** : ajoutez la même adresse (et `http://localhost:5173` pour le développement)
+
+Sans cela, les liens de confirmation / Magic Link ne fonctionneront pas en production.
+
+### Migration de la base existante
+
+Si votre base a été créée avant l'ajout des périodes, exécutez `supabase/schema.sql` à nouveau
+(le script est idempotent) ou uniquement :
+
+```sql
+alter table public.modules add column if not exists periods integer default 40 check (periods is null or periods > 0);
+```

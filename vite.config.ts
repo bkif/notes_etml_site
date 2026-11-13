@@ -4,4 +4,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173, host: true },
+  build: {
+    rollupOptions: {
+      output: {
+        // Sépare les dépendances lourdes pour un meilleur cache et un chargement plus rapide
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          query: ['@tanstack/react-query'],
+        },
+      },
+    },
+  },
 });

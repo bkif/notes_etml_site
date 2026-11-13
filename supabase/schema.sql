@@ -35,6 +35,11 @@ create unique index if not exists modules_user_code_unique
 
 create index if not exists modules_user_id_idx on public.modules (user_id);
 
+-- Migration : ajoute la colonne « periods » aux bases créées avant cette version
+alter table public.modules
+  add column if not exists periods integer default 40
+    check (periods is null or periods > 0);
+
 -- ---------------------------------------------------------------------
 -- 2. TABLE : grades
 -- ---------------------------------------------------------------------

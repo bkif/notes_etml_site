@@ -253,8 +253,6 @@ export function Dashboard() {
                     </div>
                     <span className={cn('font-mono', is80AtRisk ? 'text-red-300' : 'text-indigo-300')}>
                       Objectif : {global.targetPeriods80}p
-                      {is80AtRisk &&
-                        ` · ${pluralize(global.missingPeriodsFor80 - global.inProgressPeriods, 'période')} à rattraper`}
                     </span>
                   </div>
                 )}

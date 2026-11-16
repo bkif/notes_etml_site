@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, X, Layers, Hash, CheckSquare } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, FolderPlus, Plus, Search, SearchX, Sigma, Target, X, Layers, Hash, CheckSquare } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Modal } from '../components/ui/Modal';
@@ -14,6 +14,7 @@ import {
   formatAverage,
   isModuleValidated,
   PASS_THRESHOLD,
+  PERIOD_PASS_RATE,
   toneClasses,
 } from '../lib/grades';
 import { cn, isTypingTarget, pluralize } from '../lib/utils';
@@ -72,6 +73,11 @@ export function Dashboard() {
   const statusModules = useMemo(() => filtered.filter((m) => m.type === 'status'), [filtered]);
 
   const globalTone = averageTone(global.globalAverage);
+  const is80Reached = global.totalPeriods > 0 && global.missingPeriodsFor80 === 0;
+  const is80AtRisk =
+    global.totalPeriods > 0 &&
+    !is80Reached &&
+    global.acquiredPeriods + global.inProgressPeriods < global.targetPeriods80;
 
   return (
     <div className="space-y-6">
@@ -155,7 +161,14 @@ export function Dashboard() {
                 <div className="flex items-baseline gap-1 font-mono">
                   <span className="text-xl font-bold text-zinc-100">{global.acquiredPeriods}</span>
                   <span className="text-xs text-zinc-500">/ {global.totalPeriods} périodes</span>
-                  <span className="ml-2 rounded-md bg-zinc-800 px-2 py-0.5 text-xs font-semibold text-indigo-400">
+                  <span
+                    className={cn(
+                      'ml-2 rounded-md px-2 py-0.5 text-xs font-semibold',
+                      is80Reached
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-zinc-800 text-indigo-400',
+                    )}
+                  >
                     {Math.round((global.acquiredPeriods / global.totalPeriods) * 100)}%
                   </span>
                 </div>
@@ -185,7 +198,66 @@ export function Dashboard() {
                       title={`Non acquis : ${global.failedPeriods} périodes`}
                     />
                   )}
+                  <div
+                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-white/80"
+                    style={{ left: `${PERIOD_PASS_RATE * 100}%` }}
+                    title={`Seuil de réussite : 80% (${global.targetPeriods80} périodes)`}
+                    aria-hidden="true"
+                  />
                 </div>
+
+                {/* Repère 80% */}
+                <div className="relative mt-1 flex items-center justify-between font-mono text-[10px] text-zinc-500">
+                  <span>0%</span>
+                  <span
+                    className={cn(
+                      'absolute -translate-x-1/2 font-semibold',
+                      is80Reached ? 'text-emerald-400' : 'text-zinc-300',
+                    )}
+                    style={{ left: `${PERIOD_PASS_RATE * 100}%` }}
+                  >
+                    80% ({global.targetPeriods80}p)
+                  </span>
+                  <span>100%</span>
+                </div>
+
+                {/* Objectif 80% de réussite */}
+                {is80Reached ? (
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                    <div className="flex items-center gap-2 font-medium">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                      <span>Objectif des 80% de réussite atteint !</span>
+                    </div>
+                    <span className="font-mono text-emerald-400">
+                      {global.acquiredPeriods} / {global.targetPeriods80}p requises
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      'mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs',
+                      is80AtRisk
+                        ? 'border-red-500/25 bg-red-500/10 text-red-300'
+                        : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-200',
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Target className={cn('h-4 w-4 shrink-0', is80AtRisk ? 'text-red-400' : 'text-indigo-400')} />
+                      <span>
+                        Il manque{' '}
+                        <strong className="font-mono font-semibold text-white">
+                          {pluralize(global.missingPeriodsFor80, 'période')}
+                        </strong>{' '}
+                        pour atteindre 80% de réussite
+                      </span>
+                    </div>
+                    <span className={cn('font-mono', is80AtRisk ? 'text-red-300' : 'text-indigo-300')}>
+                      Objectif : {global.targetPeriods80}p
+                      {is80AtRisk &&
+                        ` · ${pluralize(global.missingPeriodsFor80 - global.inProgressPeriods, 'période')} à rattraper`}
+                    </span>
+                  </div>
+                )}
 
                 {/* Légende détaillée */}
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-4 text-xs text-zinc-400">

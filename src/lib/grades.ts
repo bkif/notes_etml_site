@@ -4,6 +4,7 @@ export const MIN_GRADE = 1;
 export const MAX_GRADE = 6;
 export const PASS_THRESHOLD = 4;
 export const GOOD_THRESHOLD = 5;
+export const PERIOD_PASS_RATE = 0.8;
 
 type Weighted = Pick<Grade, 'value' | 'weight'>;
 
@@ -69,6 +70,8 @@ export interface GlobalStats {
   acquiredPeriods: number;
   inProgressPeriods: number;
   failedPeriods: number;
+  targetPeriods80: number;
+  missingPeriodsFor80: number;
 }
 
 export function computeGlobalStats(
@@ -112,6 +115,10 @@ export function computeGlobalStats(
     }
   }
 
+  const targetPeriods80 =
+    totalPeriods > 0 ? Math.ceil(totalPeriods * PERIOD_PASS_RATE - 1e-9) : 0;
+  const missingPeriodsFor80 = Math.max(0, targetPeriods80 - acquiredPeriods);
+
   return {
     globalAverage: coefSum > 0 ? sum / coefSum : null,
     gradedModuleCount: graded,
@@ -123,6 +130,8 @@ export function computeGlobalStats(
     acquiredPeriods,
     inProgressPeriods,
     failedPeriods,
+    targetPeriods80,
+    missingPeriodsFor80,
   };
 }
 

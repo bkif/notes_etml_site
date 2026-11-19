@@ -39,8 +39,11 @@ export function Layout() {
   return (
     <div className="min-h-[100dvh]">
       <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-          <Link to="/" className="flex items-center gap-2.5">
+        <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          >
             <Logo />
             <span className="text-sm font-semibold tracking-tight">Notes</span>
           </Link>
@@ -55,7 +58,7 @@ export function Layout() {
                   title={label}
                   className={({ isActive }) =>
                     cn(
-                      'flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm transition',
+                      'flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70',
                       isActive ? 'bg-zinc-800/70 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-100',
                     )
                   }
@@ -66,14 +69,14 @@ export function Layout() {
               ))}
             </nav>
             <div className="mx-2 hidden h-5 w-px bg-zinc-800 md:block" />
-            <span className="hidden max-w-[200px] truncate text-xs text-zinc-500 md:block" title={user?.email}>
+            <span className="hidden max-w-[200px] truncate text-xs text-zinc-400 md:block" title={user?.email}>
               {user?.email}
             </span>
             <button
               onClick={signOut}
               title="Se déconnecter"
               aria-label="Se déconnecter"
-              className="ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/40 hover:text-zinc-100"
+              className="ml-1 flex h-9 w-9 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800/40 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -81,14 +84,14 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:pt-8">
+      <main className="mx-auto max-w-[1200px] px-4 pb-24 pt-6 sm:px-6 sm:pt-8 md:pb-12">
         <Outlet />
       </main>
 
-      {/* Bouton d'action flottant : saisie rapide */}
+      {/* Bouton d'action flottant : saisie rapide (mobile uniquement) */}
       <button
         onClick={() => setFastAddOpen(true)}
-        className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-indigo-400/50 transition hover:scale-105 hover:bg-indigo-400 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/40"
+        className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-indigo-400/50 transition hover:scale-105 hover:bg-indigo-400 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/40 md:hidden"
         aria-label="Ajouter une note (raccourci : N)"
         title="Ajouter une note (N)"
       >

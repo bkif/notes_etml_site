@@ -21,7 +21,7 @@ import {
   PASS_THRESHOLD,
   toneClasses,
 } from '../lib/grades';
-import { cn, formatDate, isTempId, pluralize } from '../lib/utils';
+import { capitalizeFirst, cn, formatDate, isTempId, pluralize } from '../lib/utils';
 import { STATUS_OPTIONS, type Grade } from '../lib/types';
 
 export function ModuleDetail() {
@@ -104,7 +104,7 @@ export function ModuleDetail() {
     <div className="space-y-6">
       <Link
         to="/"
-        className="inline-flex items-center gap-1.5 text-sm text-zinc-500 transition hover:text-zinc-200"
+        className="inline-flex items-center gap-1.5 rounded-md text-sm text-zinc-400 transition hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70"
       >
         <ArrowLeft className="h-4 w-4" />
         Tableau de bord
@@ -115,19 +115,17 @@ export function ModuleDetail() {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-mono text-2xl font-semibold tracking-tight">{module.code}</h1>
-            <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-500">
+            <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
               coef. ×{formatWeight(module.coefficient)}
             </span>
-            {module.type === 'status' && module.periods && (
-              <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
-                {module.periods} périodes
-              </span>
-            )}
-            <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-xs text-zinc-500">
+            <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
+              {module.periods && module.periods > 0 ? module.periods : 40} périodes
+            </span>
+            <span className="rounded-md border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-xs text-zinc-400">
               {module.type === 'numeric' ? 'Notes chiffrées' : 'Validation'}
             </span>
           </div>
-          <p className="mt-1 text-zinc-400">{module.name}</p>
+          <p className="mt-1 text-zinc-300 first-letter:uppercase">{capitalizeFirst(module.name)}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={() => setEditModuleOpen(true)} disabled={isTempId(module.id)}>
@@ -143,11 +141,11 @@ export function ModuleDetail() {
 
       {module.type === 'status' ? (
         <section className="card max-w-xl p-5">
-          <p className="text-xs font-medium text-zinc-500">Statut actuel</p>
+          <p className="text-xs font-medium text-zinc-400">Statut actuel</p>
           <div className="mt-3">
             <StatusBadge status={module.status_validation} />
           </div>
-          <p className="mt-5 text-xs font-medium text-zinc-500">Mettre à jour le statut</p>
+          <p className="mt-5 text-xs font-medium text-zinc-400">Mettre à jour le statut</p>
           <div className="mt-2 grid grid-cols-3 gap-2">
             {STATUS_OPTIONS.map((s) => (
               <button
@@ -160,7 +158,7 @@ export function ModuleDetail() {
               </button>
             ))}
           </div>
-          <p className="mt-4 text-xs text-zinc-600">
+          <p className="mt-4 text-xs text-zinc-400">
             Ce module est évalué par validation binaire et n’entre pas dans le calcul de la moyenne générale.
           </p>
         </section>
@@ -171,18 +169,18 @@ export function ModuleDetail() {
             <section className="card p-5">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <p className="text-xs font-medium text-zinc-500">Moyenne pondérée</p>
+                  <p className="text-xs font-medium text-zinc-400">Moyenne pondérée</p>
                   <p className={cn('mt-1 font-mono text-4xl font-semibold tracking-tight', toneClasses[tone].text)}>
                     {formatAverage(stat.average)}
                   </p>
                 </div>
                 <div className="flex gap-6 text-right">
                   <div>
-                    <p className="text-xs text-zinc-500">Évaluations</p>
+                    <p className="text-xs text-zinc-400">Évaluations</p>
                     <p className="mt-0.5 font-mono text-sm text-zinc-200">{stat.count}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-zinc-500">Poids total</p>
+                    <p className="text-xs text-zinc-400">Poids total</p>
                     <p className="mt-0.5 font-mono text-sm text-zinc-200">{formatWeight(stat.totalWeight)}</p>
                   </div>
                 </div>
@@ -199,18 +197,18 @@ export function ModuleDetail() {
                   style={{ left: `${gradeToPercent(PASS_THRESHOLD)}%` }}
                 />
               </div>
-              <div className="mt-1.5 flex justify-between font-mono text-[10px] text-zinc-600">
+              <div className="mt-1.5 flex justify-between font-mono text-[10px] text-zinc-400">
                 <span>1.0</span>
                 <span>6.0</span>
               </div>
-              <p className="mt-2 text-xs text-zinc-600">Σ(note × poids) / Σ(poids)</p>
+              <p className="mt-2 text-xs text-zinc-400">Σ(note × poids) / Σ(poids)</p>
             </section>
 
             {/* Évaluations */}
             <section className="card overflow-hidden">
               <div className="flex items-center justify-between gap-3 border-b border-zinc-800/80 px-4 py-3">
                 <h2 className="text-sm font-semibold">
-                  Évaluations <span className="font-normal text-zinc-500">({moduleGrades.length})</span>
+                  Évaluations <span className="font-normal text-zinc-400">({moduleGrades.length})</span>
                 </h2>
                 <Button size="sm" variant="primary" onClick={openCreateGrade} disabled={isTempId(module.id)}>
                   <Plus className="h-3.5 w-3.5" />
@@ -220,15 +218,15 @@ export function ModuleDetail() {
 
               {moduleGrades.length === 0 ? (
                 <div className="flex flex-col items-center px-6 py-12 text-center">
-                  <p className="text-sm text-zinc-400">Aucune évaluation enregistrée.</p>
-                  <p className="mt-1 text-xs text-zinc-600">Ajoutez votre première note pour calculer la moyenne.</p>
+                  <p className="text-sm text-zinc-300">Aucune évaluation enregistrée.</p>
+                  <p className="mt-1 text-xs text-zinc-400">Ajoutez votre première note pour calculer la moyenne.</p>
                 </div>
               ) : (
                 <>
                   {/* Tableau (desktop) */}
                   <table className="hidden w-full text-sm md:table">
                     <thead>
-                      <tr className="border-b border-zinc-800/80 text-left text-xs text-zinc-500">
+                      <tr className="border-b border-zinc-800/80 text-left text-xs text-zinc-400">
                         <th className="px-4 py-2.5 font-medium">Date</th>
                         <th className="px-4 py-2.5 font-medium">Titre</th>
                         <th className="px-4 py-2.5 text-right font-medium">Note</th>

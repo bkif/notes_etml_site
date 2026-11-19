@@ -42,7 +42,14 @@ export function Dashboard() {
   // Raccourci « / » pour la recherche
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === '/' && !isTypingTarget(e.target) && !document.querySelector('[role="dialog"]')) {
+      if (
+        e.key === '/' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !isTypingTarget(e.target) &&
+        !document.querySelector('[role="dialog"]')
+      ) {
         e.preventDefault();
         searchRef.current?.focus();
       }
@@ -51,10 +58,34 @@ export function Dashboard() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const filtered = useMemo(() => {
+  const searched = useMemo(() => {
     const q = normalize(query.trim());
-    return modules.filter((m) => {
-      if (q && !normalize(m.code).includes(q) && !normalize(m.name).includes(q)) return false;
+    if (!q) return modules;
+    return modules.filter(
+      (m) => normalize(m.code).includes(q) || normalize(m.name).includes(q),
+    );
+  }, [modules, query]);
+
+  const filterCounts = useMemo<Record<Filter, number>>(() => {
+    let validated = 0;
+    let below = 0;
+    let status = 0;
+    for (const m of searched) {
+      const stat = stats.get(m.id) ?? EMPTY_STAT;
+      if (isModuleValidated(m, stat)) validated++;
+      if (m.type === 'numeric' && stat.average !== null && stat.average < PASS_THRESHOLD) below++;
+      if (m.type === 'status') status++;
+    }
+    return {
+      all: searched.length,
+      validated,
+      below,
+      status,
+    };
+  }, [searched, stats]);
+
+  const filtered = useMemo(() => {
+    return searched.filter((m) => {
       const stat = stats.get(m.id) ?? EMPTY_STAT;
       switch (filter) {
         case 'validated':
@@ -67,7 +98,7 @@ export function Dashboard() {
           return true;
       }
     });
-  }, [modules, stats, query, filter]);
+  }, [searched, stats, filter]);
 
   const numericModules = useMemo(() => filtered.filter((m) => m.type === 'numeric'), [filtered]);
   const statusModules = useMemo(() => filtered.filter((m) => m.type === 'status'), [filtered]);
@@ -84,7 +115,7 @@ export function Dashboard() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Tableau de bord</h1>
-          <p className="mt-1 text-sm text-zinc-500">Vue d’ensemble de vos modules et résultats.</p>
+          <p className="mt-1 text-sm text-zinc-400">Vue d’ensemble de vos modules et résultats.</p>
         </div>
         <Button variant="primary" onClick={() => setCreateOpen(true)} className="hidden sm:inline-flex">
           <Plus className="h-4 w-4" />
@@ -106,7 +137,7 @@ export function Dashboard() {
                   label="Moyenne générale"
                   icon={Sigma}
                   value={formatAverage(global.globalAverage)}
-                  valueClassName={global.globalAverage !== null ? toneClasses[globalTone].text : 'text-zinc-500'}
+                  valueClassName={global.globalAverage !== null ? toneClasses[globalTone].text : 'text-zinc-400'}
                   hint={
                     global.gradedModuleCount > 0
                       ? `Pondérée · ${pluralize(global.gradedModuleCount, 'module noté', 'modules notés')}`
@@ -120,7 +151,7 @@ export function Dashboard() {
                   value={
                     <>
                       {global.validatedCount}
-                      <span className="text-base text-zinc-600"> / {global.moduleCount}</span>
+                      <span className="text-base text-zinc-400"> / {global.moduleCount}</span>
                     </>
                   }
                   hint="Moyenne ≥ 4.0 ou « Acquis »"
@@ -160,7 +191,7 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-baseline gap-1 font-mono">
                   <span className="text-xl font-bold text-zinc-100">{global.acquiredPeriods}</span>
-                  <span className="text-xs text-zinc-500">/ {global.totalPeriods} périodes</span>
+                  <span className="text-xs text-zinc-400">/ {global.totalPeriods} périodes</span>
                   <span
                     className={cn(
                       'ml-2 rounded-md px-2 py-0.5 text-xs font-semibold',
@@ -207,7 +238,7 @@ export function Dashboard() {
                 </div>
 
                 {/* Repère 80% */}
-                <div className="relative mt-1 flex items-center justify-between font-mono text-[10px] text-zinc-500">
+                <div className="relative mt-1 flex items-center justify-between font-mono text-[10px] text-zinc-400">
                   <span>0%</span>
                   <span
                     className={cn(
@@ -275,7 +306,7 @@ export function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div className="font-mono text-zinc-500">
+                  <div className="font-mono text-zinc-400">
                     Total : {global.totalPeriods} périodes
                   </div>
                 </div>
@@ -286,26 +317,35 @@ export function Dashboard() {
           {/* Recherche + filtres */}
           <section className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
               <input
                 ref={searchRef}
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' && query) {
+                    setQuery('');
+                  }
+                }}
                 placeholder="Rechercher un module (code ou nom)…"
                 className="input pl-9 pr-16 [&::-webkit-search-cancel-button]:hidden"
                 aria-label="Rechercher un module"
               />
               {query ? (
                 <button
-                  onClick={() => setQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-500 hover:text-zinc-200"
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    searchRef.current?.focus();
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 transition hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70"
                   aria-label="Effacer la recherche"
                 >
                   <X className="h-4 w-4" />
                 </button>
               ) : (
-                <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-800 bg-zinc-900 px-1.5 font-mono text-[10px] text-zinc-500 sm:block">
+                <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-800 bg-zinc-900 px-1.5 font-mono text-[10px] text-zinc-400 sm:block">
                   /
                 </kbd>
               )}
@@ -314,10 +354,19 @@ export function Dashboard() {
               {FILTERS.map((f) => (
                 <button
                   key={f.value}
+                  type="button"
                   onClick={() => setFilter(f.value)}
-                  className={cn('chip h-9 shrink-0 px-3 font-sans', filter === f.value && 'chip-active')}
+                  className={cn('chip h-9 shrink-0 gap-1.5 px-3 font-sans', filter === f.value && 'chip-active')}
                 >
-                  {f.label}
+                  <span>{f.label}</span>
+                  <span
+                    className={cn(
+                      'font-mono text-[11px]',
+                      filter === f.value ? 'text-indigo-300' : 'text-zinc-400',
+                    )}
+                  >
+                    ({filterCounts[f.value]})
+                  </span>
                 </button>
               ))}
             </div>
@@ -325,8 +374,8 @@ export function Dashboard() {
 
           {/* Grille des modules */}
           {isLoading ? (
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }, (_, i) => (
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }, (_, i) => (
                 <ModuleCardSkeleton key={i} />
               ))}
             </section>
@@ -336,7 +385,7 @@ export function Dashboard() {
                 <FolderPlus className="h-5 w-5 text-zinc-400" />
               </div>
               <h2 className="mt-4 text-sm font-semibold">Aucun module pour l’instant</h2>
-              <p className="mt-1 max-w-sm text-sm text-zinc-500">
+              <p className="mt-1 max-w-sm text-sm text-zinc-400">
                 Créez votre premier module (ex. « I320 — Programmation orientée objet ») pour commencer à suivre vos
                 notes.
               </p>
@@ -347,7 +396,7 @@ export function Dashboard() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="card flex flex-col items-center px-6 py-12 text-center">
-              <SearchX className="h-6 w-6 text-zinc-600" />
+              <SearchX className="h-6 w-6 text-zinc-500" />
               <p className="mt-3 text-sm text-zinc-400">Aucun module ne correspond à votre recherche.</p>
               <Button
                 variant="ghost"
@@ -379,7 +428,7 @@ export function Dashboard() {
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {numericModules.map((m) => (
                       <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
                     ))}
@@ -403,7 +452,7 @@ export function Dashboard() {
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {statusModules.map((m) => (
                       <ModuleCard key={m.id} module={m} stat={stats.get(m.id) ?? EMPTY_STAT} />
                     ))}

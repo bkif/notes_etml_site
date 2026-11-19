@@ -4,7 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#09090b" />
-    <meta name="description" content="Suivi des notes scolaires et des modules de formation" />
+    <title>Notes ETML — Suivi des modules et moyennes</title>
+    <meta
+      name="description"
+      content="Application de suivi des notes, moyennes pondérées et périodes d'enseignement pour le cursus informatique ETML."
+    />
+    <meta property="og:title" content="Notes ETML — Suivi des modules et moyennes" />
+    <meta
+      property="og:description"
+      content="Application de suivi des notes, moyennes pondérées et périodes d'enseignement pour le cursus informatique ETML."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://notes-etml-site.vercel.app/" />
+    <meta property="og:locale" content="fr_CH" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Notes ETML — Suivi des modules et moyennes" />
+    <meta
+      name="twitter:description"
+      content="Application de suivi des notes, moyennes pondérées et périodes d'enseignement pour le cursus informatique ETML."
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,10 +30,73 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
       rel="stylesheet"
     />
-    <title>Notes — Suivi des modules</title>
+    <style>
+      html,
+      body {
+        background-color: #09090b;
+        color: #f4f4f5;
+        margin: 0;
+      }
+      .app-shell {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background-color: #09090b;
+      }
+      .app-shell-logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #818cf8, #4f46e5);
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+      }
+      .app-shell-spinner {
+        width: 24px;
+        height: 24px;
+        border-radius: 9999px;
+        border: 2px solid #27272a;
+        border-top-color: #6366f1;
+        animation: app-shell-spin 0.75s linear infinite;
+      }
+      @keyframes app-shell-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="app-shell" aria-busy="true" aria-label="Chargement de l'application">
+        <div class="app-shell-logo">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"
+            />
+            <path d="M22 10v6" />
+            <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+          </svg>
+        </div>
+        <div class="app-shell-spinner" aria-hidden="true"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

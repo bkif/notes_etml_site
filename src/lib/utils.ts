@@ -51,6 +51,12 @@ export function pluralize(count: number, singular: string, plural = `${singular}
   return `${count} ${count > 1 ? plural : singular}`;
 }
 
+export function capitalizeFirst(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return '';
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
 export function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;

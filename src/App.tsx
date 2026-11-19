@@ -6,6 +6,7 @@ import { ModuleDetail } from './pages/ModuleDetail';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
 import { useAuth } from './contexts/AuthContext';
+import { FullScreenLoader } from './components/ui/Logo';
 import { isSupabaseConfigured } from './lib/supabase';
 import { Database } from 'lucide-react';
 
@@ -25,8 +26,8 @@ function SupabaseNotConfigured() {
           VITE_SUPABASE_URL=https://...<br />
           VITE_SUPABASE_ANON_KEY=eyJ...
         </div>
-        <p className="text-xs text-zinc-500">
-          Pensez également à exécuter le script <code className="text-zinc-400">supabase/schema.sql</code> dans l’éditeur SQL de Supabase.
+        <p className="text-xs text-zinc-400">
+          Pensez également à exécuter le script <code className="text-zinc-300">supabase/schema.sql</code> dans l’éditeur SQL de Supabase.
         </p>
       </div>
     </div>
@@ -37,11 +38,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (!user) {

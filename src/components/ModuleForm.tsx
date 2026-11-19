@@ -37,8 +37,7 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
     const cleanCode = code.trim();
     const cleanName = name.trim();
     const coef = parseDecimal(coefficient);
-    const parsedPeriods =
-      type === 'status' ? (periods.trim() ? parseInt(periods.trim(), 10) : 40) : null;
+    const parsedPeriods = periods.trim() ? parseInt(periods.trim(), 10) : 40;
 
     if (!cleanCode) next.code = 'Le code est requis (ex. I320).';
     else if (cleanCode.length > 32) next.code = '32 caractères maximum.';
@@ -55,7 +54,7 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
     if (coef === null || coef <= 0) next.coefficient = 'Le coefficient doit être supérieur à 0.';
     else if (coef > 100) next.coefficient = 'Le coefficient ne peut pas dépasser 100.';
 
-    if (type === 'status' && parsedPeriods !== null && (isNaN(parsedPeriods) || parsedPeriods <= 0 || parsedPeriods > 1000)) {
+    if (isNaN(parsedPeriods) || parsedPeriods <= 0 || parsedPeriods > 1000) {
       next.periods = 'Le nombre de périodes doit être positif (ex. 40, 80).';
     }
 
@@ -126,16 +125,16 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
               aria-checked={type === value}
               onClick={() => setType(value)}
               className={cn(
-                'flex items-start gap-2.5 rounded-lg border p-3 text-left transition',
+                'flex items-start gap-2.5 rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70',
                 type === value
                   ? 'border-indigo-500/50 bg-indigo-500/10'
                   : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700',
               )}
             >
-              <Icon className={cn('mt-0.5 h-4 w-4', type === value ? 'text-indigo-400' : 'text-zinc-500')} />
+              <Icon className={cn('mt-0.5 h-4 w-4', type === value ? 'text-indigo-400' : 'text-zinc-400')} />
               <span>
                 <span className="block text-sm font-medium text-zinc-200">{label}</span>
-                <span className="block text-xs text-zinc-500">{description}</span>
+                <span className="block text-xs text-zinc-400">{description}</span>
               </span>
             </button>
           ))}
@@ -147,19 +146,19 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
         )}
       </div>
 
-      {type === 'status' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Nombre de périodes" htmlFor="module-periods" error={errors.periods}>
-            <input
-              id="module-periods"
-              value={periods}
-              onChange={(e) => setPeriods(e.target.value)}
-              inputMode="numeric"
-              placeholder="40"
-              autoComplete="off"
-              className={cn('input text-center font-mono', errors.periods && 'input-error')}
-            />
-          </Field>
+      <div className={cn('grid grid-cols-1 gap-3', type === 'status' && 'sm:grid-cols-2')}>
+        <Field label="Nombre de périodes" htmlFor="module-periods" error={errors.periods}>
+          <input
+            id="module-periods"
+            value={periods}
+            onChange={(e) => setPeriods(e.target.value)}
+            inputMode="numeric"
+            placeholder="40"
+            autoComplete="off"
+            className={cn('input text-center font-mono', errors.periods && 'input-error')}
+          />
+        </Field>
+        {type === 'status' && (
           <Field label="Statut de validation">
             <div className="grid grid-cols-3 gap-1.5">
               {STATUS_OPTIONS.map((s) => (
@@ -174,8 +173,8 @@ export function ModuleForm({ module, existingModules, onDone }: ModuleFormProps)
               ))}
             </div>
           </Field>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         <Button variant="secondary" onClick={() => onDone()}>
